@@ -28,7 +28,6 @@ class SharedObjectDependenciesResolver:
 
         for file in shared_object_files:
             if file not in dependencies:
-
                 file_deps = self.list_dependencies(file)
                 dependencies = dependencies.union(file_deps)
             else:

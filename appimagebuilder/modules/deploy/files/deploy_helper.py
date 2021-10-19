@@ -113,8 +113,11 @@ class FileDeploy:
         for path in paths:
             expanded_list = expanded_list.union(glob.glob(path, recursive=True))
 
-        shared_object_files, regular_files = self._filter_shared_object_files(expanded_list)
-        self.deploy_shared_objects(shared_object_files)
+        bundled_so_files = self._find_bundled_so_files()
+        so_files_to_include, regular_files = self._filter_shared_object_files(expanded_list)
+        all_so_files = list(bundled_so_files) + list(so_files_to_include)
+
+        self.deploy_shared_objects(all_so_files)
 
         for path in regular_files:
             self._deploy_path(path)
@@ -130,6 +133,10 @@ class FileDeploy:
         return shared_object_files, other_files
 
     def _deploy_path(self, path):
+        if path.startswith(self.app_dir.__str__()):
+            # don't redeploy
+            return
+
         deploy_prefix = self._resolve_deploy_prefix(path)
         deploy_path = deploy_prefix / path.lstrip("/")
 
@@ -175,10 +182,12 @@ class FileDeploy:
                     # it's ok to ignore files that were already deleted
                     pass
 
-    def deploy_shared_objects(self, shared_object_files):
+    def deploy_shared_objects(self, so_files_to_include):
         self.logger.info("Resolving shared object files dependencies")
-        dependencies_resolve = SharedObjectDependenciesResolver()
-        dependencies, duplicates = dependencies_resolve.get_dependencies_map(shared_object_files)
+        ld_paths = set([os.path.dirname(file) for file in so_files_to_include])
+
+        dependencies_resolve = SharedObjectDependenciesResolver(ld_paths)
+        dependencies, duplicates = dependencies_resolve.get_dependencies_map(so_files_to_include)
         if duplicates:
             self.logger.info("These files are required by other sha:")
             for entry in duplicates:
@@ -187,5 +196,13 @@ class FileDeploy:
         for file in dependencies:
             self._deploy_path(file)
 
-        for file in shared_object_files:
+        for file in so_files_to_include:
             self._deploy_path(file)
+
+    def _find_bundled_so_files(self):
+        so_files = set()
+        for path in self.app_dir.glob("./**/*"):
+            if path.is_file() and elf.has_magic_bytes(path):
+                so_files.add(path.__str__())
+
+        return so_files
