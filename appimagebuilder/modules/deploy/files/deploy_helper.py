@@ -17,6 +17,9 @@ import os
 import pathlib
 import shutil
 
+from appimagebuilder.modules.deploy.files.shared_object_dependencies_resolver import SharedObjectDependenciesResolver
+from appimagebuilder.utils import elf
+
 
 class FileDeploy:
     """
@@ -102,7 +105,7 @@ class FileDeploy:
     }
 
     def __init__(self, app_dir: str):
-        self.app_dir = os.path.abspath(app_dir)
+        self.app_dir = pathlib.Path(app_dir).absolute()
         self.logger = logging.getLogger("FileDeploy")
 
     def deploy(self, paths: [str]):
@@ -110,12 +113,25 @@ class FileDeploy:
         for path in paths:
             expanded_list = expanded_list.union(glob.glob(path, recursive=True))
 
-        for path in expanded_list:
+        shared_object_files, regular_files = self._filter_shared_object_files(expanded_list)
+        self.deploy_shared_objects(shared_object_files)
+
+        for path in regular_files:
             self._deploy_path(path)
+
+    def _filter_shared_object_files(self, expanded_list):
+        shared_object_files = []
+        other_files = []
+        for path in expanded_list:
+            if elf.has_magic_bytes(path):
+                shared_object_files.append(path)
+            else:
+                other_files.append(path)
+        return shared_object_files, other_files
 
     def _deploy_path(self, path):
         deploy_prefix = self._resolve_deploy_prefix(path)
-        deploy_path = deploy_prefix + path.lstrip("/")
+        deploy_path = deploy_prefix / path.lstrip("/")
 
         self.logger.info("deploying %s" % path)
         if os.path.isfile(path):
@@ -135,9 +151,9 @@ class FileDeploy:
     def _resolve_deploy_prefix(self, path: str):
         for pattern in self.listings["glibc"]:
             if fnmatch.fnmatch(path, pattern):
-                return self.app_dir.rstrip("/") + "/opt/libc/"
+                return self.app_dir / "opt/libc/"
 
-        return self.app_dir.rstrip("/") + "/"
+        return self.app_dir
 
     def clean(self, paths: [str]):
         self.logger.info("Removing excluded files")
@@ -158,3 +174,18 @@ class FileDeploy:
                 except FileNotFoundError:
                     # it's ok to ignore files that were already deleted
                     pass
+
+    def deploy_shared_objects(self, shared_object_files):
+        self.logger.info("Resolving shared object files dependencies")
+        dependencies_resolve = SharedObjectDependenciesResolver()
+        dependencies, duplicates = dependencies_resolve.get_dependencies_map(shared_object_files)
+        if duplicates:
+            self.logger.info("These files are required by other sha:")
+            for entry in duplicates:
+                self.logger.info(f"\t{entry}")
+
+        for file in dependencies:
+            self._deploy_path(file)
+
+        for file in shared_object_files:
+            self._deploy_path(file)

@@ -61,6 +61,5 @@ AppDir:
       command: "./AppRun -c 'echo hello world'"
       use_host_x: True
 
-
 AppImage:
   arch: x86_64

@@ -1,7 +1,8 @@
 version: 1
 script:
   - rm AppDir -rf || true
-  - dpkg-deb -x /var/cache/apt/archives/kcalc_4%3a20.04.3-0xneon+18.04+bionic+build48_amd64.deb AppDir
+  - kcalc_deb_path=$(ls /var/cache/apt/archives/kcalc_*)
+  - dpkg-deb -x $kcalc_deb_path AppDir
 AppDir:
   path: ./AppDir
   app_info:
@@ -18,31 +19,9 @@ AppDir:
     include:
       - /etc/fonts/conf.d/*
       - /etc/xdg/ui/ui_standards.rc
-      - /lib/x86_64-linux-gnu/libacl.so.1
       - /lib/x86_64-linux-gnu/libattr.so.1
-      - /lib/x86_64-linux-gnu/libbsd.so.0
-      - /lib/x86_64-linux-gnu/libbz2.so.1.0
-      - /lib/x86_64-linux-gnu/libc.so.6
-      - /lib/x86_64-linux-gnu/libdbus-1.so.3
-      - /lib/x86_64-linux-gnu/libdl.so.2
-      - /lib/x86_64-linux-gnu/libexpat.so.1
-      - /lib/x86_64-linux-gnu/libgcc_s.so.1
-      - /lib/x86_64-linux-gnu/libgcrypt.so.20
-      - /lib/x86_64-linux-gnu/libgpg-error.so.0
-      - /lib/x86_64-linux-gnu/liblzma.so.5
-      - /lib/x86_64-linux-gnu/libm.so.6
-      - /lib/x86_64-linux-gnu/libnsl.so.1
       - /lib/x86_64-linux-gnu/libnss_compat.so.2
-      - /lib/x86_64-linux-gnu/libnss_files.so.2
       - /lib/x86_64-linux-gnu/libnss_nis.so.2
-      - /lib/x86_64-linux-gnu/libpcre.so.3
-      - /lib/x86_64-linux-gnu/libpthread.so.0
-      - /lib/x86_64-linux-gnu/librt.so.1
-      - /lib/x86_64-linux-gnu/libsystemd.so.0
-      - /lib/x86_64-linux-gnu/libudev.so.1
-      - /lib/x86_64-linux-gnu/libuuid.so.1
-      - /lib/x86_64-linux-gnu/libz.so.1
-      - /lib64/ld-linux-x86-64.so.2
       - /usr/lib/locale/locale-archive
       - /usr/lib/x86_64-linux-gnu/dri/i965_dri.so
       - /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache
@@ -221,14 +200,11 @@ AppDir:
       - /usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/libqxcb.so
       - /usr/lib/x86_64-linux-gnu/qt5/plugins/platformthemes/KDEPlasmaPlatformTheme.so
       - /usr/lib/x86_64-linux-gnu/qt5/plugins/platformthemes/libqgtk3.so
-      - /usr/lib/x86_64-linux-gnu/qt5/plugins/styles/breeze.so
-      - /usr/lib/x86_64-linux-gnu/qt5/plugins/styles/oxygen.so
       - /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations/libqxcb-egl-integration.so
       - /usr/lib/x86_64-linux-gnu/qt5/plugins/xcbglintegrations/libqxcb-glx-integration.so
       - /usr/share/X11/locale/en_US.UTF-8/XLC_LOCALE
       - /usr/share/X11/locale/locale.dir
       - /usr/share/drirc.d/00-mesa-defaults.conf
-      - /usr/share/icons/breeze/index.theme
       - /usr/share/icons/breeze_cursors/cursors/left_ptr
       - /usr/share/kcalc/scienceconstants.xml
       - /usr/share/kxmlgui5/kcalc/kcalcui.rc
