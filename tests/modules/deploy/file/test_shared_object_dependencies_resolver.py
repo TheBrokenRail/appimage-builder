@@ -12,7 +12,9 @@
 
 from unittest import TestCase
 
-from appimagebuilder.modules.deploy.files.shared_object_dependencies_resolver import SharedObjectDependenciesResolver
+from appimagebuilder.modules.deploy.files.shared_object_dependencies_resolver import (
+    SharedObjectDependenciesResolver,
+)
 
 
 class TestSharedObjectDependenciesResolver(TestCase):
@@ -20,5 +22,5 @@ class TestSharedObjectDependenciesResolver(TestCase):
         self.resolver = SharedObjectDependenciesResolver()
 
     def test_list_dependencies(self):
-        dependencies = self.resolver.list_dependencies('/bin/bash')
-        self.assertIn('/lib64/ld-linux-x86-64.so.2', dependencies)
+        dependencies = self.resolver.list_dependencies("/bin/bash")
+        self.assertIn("/lib64/ld-linux-x86-64.so.2", dependencies)

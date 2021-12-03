@@ -63,3 +63,5 @@ AppDir:
 
 AppImage:
   arch: x86_64
+  # set updates from pling.com
+  update-information: 'ocs-v1-zsync|www.appimagehub.com/ocs/v1|1623134|*?-stable-x86_64.AppImage'

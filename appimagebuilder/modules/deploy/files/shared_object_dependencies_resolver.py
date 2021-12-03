@@ -38,9 +38,9 @@ class SharedObjectDependenciesResolver:
     def list_dependencies(self, file):
         env = os.environ.copy()
         if self._ld_paths:
-            env['LD_LIBRARY_PATH'] = ":".join(self._ld_paths)
+            env["LD_LIBRARY_PATH"] = ":".join(self._ld_paths)
 
-        proc = subprocess.run(['ldd', file], capture_output=True, env=env)
+        proc = subprocess.run(["ldd", file], capture_output=True, env=env)
 
         output = proc.stdout.decode()
-        return re.findall(r'\s(/.*)\s\(.*\)', output)
+        return re.findall(r"\s(/.*)\s\(.*\)", output)

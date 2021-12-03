@@ -45,10 +45,14 @@ class IconBundler:
 
     def _get_icon_path(self):
         search_paths = [
-            os.path.join(self.app_dir, "usr", "share", "icons"),
-            os.path.join(self.app_dir, "usr", "share", "pixmaps"),
             os.path.join("/", "usr", "share", "icons"),
             os.path.join("/", "usr", "share", "pixmaps"),
+            os.path.join("/", "usr", "local", "share", "icons"),
+            os.path.join("/", "usr", "local", "share", "pixmaps"),
+            os.path.join(self.app_dir, "usr", "share", "icons"),
+            os.path.join(self.app_dir, "usr", "share", "pixmaps"),
+            os.path.join(self.app_dir, "usr", "local", "share", "icons"),
+            os.path.join(self.app_dir, "usr", "local", "share", "pixmaps"),
         ]
 
         for path in search_paths:

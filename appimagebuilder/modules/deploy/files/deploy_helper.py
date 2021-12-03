@@ -17,7 +17,9 @@ import os
 import pathlib
 import shutil
 
-from appimagebuilder.modules.deploy.files.shared_object_dependencies_resolver import SharedObjectDependenciesResolver
+from appimagebuilder.modules.deploy.files.shared_object_dependencies_resolver import (
+    SharedObjectDependenciesResolver,
+)
 from appimagebuilder.utils import elf
 
 
@@ -114,7 +116,9 @@ class FileDeploy:
             expanded_list = expanded_list.union(glob.glob(path, recursive=True))
 
         bundled_so_files = self._find_bundled_so_files()
-        so_files_to_include, regular_files = self._filter_shared_object_files(expanded_list)
+        so_files_to_include, regular_files = self._filter_shared_object_files(
+            expanded_list
+        )
         all_so_files = list(bundled_so_files) + list(so_files_to_include)
 
         self.deploy_shared_objects(all_so_files)
@@ -187,9 +191,13 @@ class FileDeploy:
         ld_paths = set([os.path.dirname(file) for file in so_files_to_include])
 
         dependencies_resolve = SharedObjectDependenciesResolver(ld_paths)
-        dependencies, duplicates = dependencies_resolve.get_dependencies_map(so_files_to_include)
+        dependencies, duplicates = dependencies_resolve.get_dependencies_map(
+            so_files_to_include
+        )
         if duplicates:
-            self.logger.info("These files are required by other sha:")
+            self.logger.info(
+                "These files are required by other shared objects and can be safely omitted:"
+            )
             for entry in duplicates:
                 self.logger.info(f"\t{entry}")
 

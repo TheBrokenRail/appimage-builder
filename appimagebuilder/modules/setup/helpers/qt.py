@@ -80,11 +80,7 @@ class Qt(BaseHelper):
         if libqminimal_path:
             self._qt_dirs["Plugins"] = libqminimal_path.parent.parent
 
-        builtins_qmltypes_path = self.finder.find_one(
-            "*/builtins.qmltypes", [Finder.is_file]
-        )
-        if builtins_qmltypes_path:
-            self._qt_dirs["Qml2Imports"] = builtins_qmltypes_path.parent
+        self._locate_qml_dir()
 
         qtbase_translations_path = self.finder.find_one(
             "*/qt5/translations", [Finder.is_dir]
@@ -95,3 +91,12 @@ class Qt(BaseHelper):
         data_path = self.finder.find_one("*/qt5/resources", [Finder.is_dir])
         if data_path:
             self._qt_dirs["Data"] = data_path.parent
+
+    def _locate_qml_dir(self):
+        qmldir_path = self.finder.find_one("*/qmldir", [Finder.is_file])
+
+        while qmldir_path.name != "qml" and qmldir_path != "/":
+            qmldir_path = qmldir_path.parent
+
+        if qmldir_path and qmldir_path.name == "qml":
+            self._qt_dirs["Qml2Imports"] = qmldir_path

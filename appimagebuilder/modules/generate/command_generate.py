@@ -36,7 +36,12 @@ class GenerateMethodError(RuntimeError):
 
 
 class CommandGenerate:
-    def __init__(self):
+    COMMAND_ID = "generate"
+    FILE_GENERATOR = "file"
+    APT_GENERATOR = "apt"
+    PACMAN_GENERATOR = "pacman"
+
+    def __init__(self, generator=FILE_GENERATOR):
         self.logger = logging.getLogger("Generator")
 
         self.logger.info("Searching AppDir")
@@ -44,22 +49,33 @@ class CommandGenerate:
 
         # configure Recipe Generator
         package_manager_section_generators = []
-        if shutil.which("apt-get"):
+        if generator == self.FILE_GENERATOR:
+            package_manager_section_generators.append(FilesSectionGenerator())
+
+        if generator == self.APT_GENERATOR:
+            if not shutil.which("apt-get"):
+                raise RuntimeError(
+                    "apt generator required but apt-get command is not available"
+                )
+
             apt_file_package_resolver = apt.FilePackageResolver()
             apt_package_repository_resolver = apt.PackageRepositoryResolver()
             apt_section_generator = recipe_sections.AptSectionGenerator(
                 apt_file_package_resolver, apt_package_repository_resolver
             )
             package_manager_section_generators.append(apt_section_generator)
-        if shutil.which("pacman"):
+
+        if generator == self.PACMAN_GENERATOR:
+            if not shutil.which("pacman"):
+                raise RuntimeError(
+                    "pacman generator required but pacman command is not available"
+                )
+
             pacman_file_package_resolver = pacman.FilePackageResolver()
             pacman_section_generator = recipe_sections.PacmanSectionGenerator(
                 pacman_file_package_resolver
             )
             package_manager_section_generators.append(pacman_section_generator)
-
-        # append files section generator at last as it will catch all the dependencies
-        package_manager_section_generators.append(FilesSectionGenerator())
 
         bundle_info_gatherer_ui = BundleInfoGathererCLI()
         desktop_entry_parser = DesktopEntryParser()
@@ -95,4 +111,22 @@ class CommandGenerate:
 
         raise GenerateMethodError(
             "Unable to find an AppDir, this is required to create a recipe."
+        )
+
+    @staticmethod
+    def setup_parser(subparsers):
+        generate_parser = subparsers.add_parser(
+            "generate", help="Create a recipe from an AppDir"
+        )
+        generate_parser.set_defaults(command=CommandGenerate.COMMAND_ID)
+        generate_parser.add_argument(
+            "--generator",
+            dest="generator",
+            choices=[
+                CommandGenerate.FILE_GENERATOR,
+                CommandGenerate.APT_GENERATOR,
+                CommandGenerate.FILE_GENERATOR,
+            ],
+            default=CommandGenerate.FILE_GENERATOR,
+            help="Generator to be used",
         )

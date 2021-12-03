@@ -13,9 +13,13 @@ import fnmatch
 
 from appimagebuilder.modules.deploy import FileDeploy
 from appimagebuilder.context import BundleInfo
+from appimagebuilder.modules.deploy.files.shared_object_dependencies_resolver import (
+    SharedObjectDependenciesResolver,
+)
 from appimagebuilder.modules.generate.recipe_sections.package_manager_recipe_section_generator import (
     PackageManagerSectionGenerator,
 )
+from appimagebuilder.utils import elf
 
 
 class FilesSectionGenerator(PackageManagerSectionGenerator):
@@ -31,6 +35,12 @@ class FilesSectionGenerator(PackageManagerSectionGenerator):
                 "/**/fonts/.uuid",
                 # generic icons mime type
                 "**/share/mime/generic-icons",
+                # gconv cache
+                "**/lib/**/gconv-modules.cache",
+                # exclude zoneinfo
+                "/usr/share/zoneinfo/**",
+                # exclude DRI libs
+                "**/lib/**/dri/*.so",
             ]
         )
 
@@ -38,12 +48,14 @@ class FilesSectionGenerator(PackageManagerSectionGenerator):
         return "files"
 
     def generate(self, dependencies: [str], bundle_info: BundleInfo) -> ({}, [str]):
-        include_list = [
-            str(path) for path in dependencies if not self._is_file_blacklisted(path)
-        ]
+        include_list = set(
+            [str(path) for path in dependencies if not self._is_file_blacklisted(path)]
+        )
+
+        filtered_include_list = self.filter_linked_libraries(include_list)
 
         result = {
-            "include": sorted(include_list),
+            "include": sorted(filtered_include_list),
             "exclude": [
                 "usr/share/man",
                 "usr/share/doc/*/README.*",
@@ -59,3 +71,14 @@ class FilesSectionGenerator(PackageManagerSectionGenerator):
             if fnmatch.fnmatch(file_name, pattern):
                 return True
         return False
+
+    def filter_linked_libraries(self, include_list):
+        so_files = [file for file in include_list if elf.has_magic_bytes(file)]
+
+        resolver = SharedObjectDependenciesResolver()
+        dependencies, _ = resolver.get_dependencies_map(so_files)
+        for file in dependencies:
+            if file in include_list:
+                include_list.remove(file)
+
+        return include_list

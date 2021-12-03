@@ -12,55 +12,56 @@
 import argparse
 import os
 
+from appimagebuilder.modules.generate.command_generate import CommandGenerate
 
-class ArgumentsParser:
-    """CLI setup"""
 
-    def __init__(self):
-        self.parser = argparse.ArgumentParser(description="AppImage crafting tool")
+def setup_argparser():
+    parser = argparse.ArgumentParser(description="AppImage crafting tool")
 
-        self.parser.add_argument(
-            "--recipe",
-            dest="recipe",
-            default=os.path.join(os.getcwd(), "AppImageBuilder.yml"),
-            help="recipe file path (default: $PWD/AppImageBuilder.yml)",
-        )
-        self.parser.add_argument(
-            "--log",
-            dest="loglevel",
-            default="INFO",
-            help="logging level (default: INFO)",
-        )
-        self.parser.add_argument(
-            "--skip-script",
-            dest="skip_script",
-            action="store_true",
-            help="Skip script execution",
-        )
-        self.parser.add_argument(
-            "--skip-build",
-            dest="skip_build",
-            action="store_true",
-            help="Skip AppDir building",
-        )
-        self.parser.add_argument(
-            "--skip-tests",
-            dest="skip_tests",
-            action="store_true",
-            help="Skip AppDir testing",
-        )
-        self.parser.add_argument(
-            "--skip-appimage",
-            dest="skip_appimage",
-            action="store_true",
-            help="Skip AppImage generation",
-        )
-        self.parser.add_argument(
-            "--generate",
-            dest="generate",
-            action="store_true",
-            help="Try to generate recipe from an AppDir",
-        )
+    parser.add_argument(
+        "--recipe",
+        dest="recipe",
+        default=os.path.join(os.getcwd(), "AppImageBuilder.yml"),
+        help="recipe file path (default: $PWD/AppImageBuilder.yml)",
+    )
+    parser.add_argument(
+        "--log",
+        dest="loglevel",
+        default="INFO",
+        help="logging level (default: INFO)",
+    )
+    parser.add_argument(
+        "--skip-script",
+        dest="skip_script",
+        action="store_true",
+        help="[DEPRECATED] Skip script execution",
+    )
+    parser.add_argument(
+        "--skip-build",
+        dest="skip_build",
+        action="store_true",
+        help="[DEPRECATED] Skip AppDir building",
+    )
+    parser.add_argument(
+        "--skip-tests",
+        dest="skip_tests",
+        action="store_true",
+        help="[DEPRECATED] Skip AppDir testing",
+    )
+    parser.add_argument(
+        "--skip-appimage",
+        dest="skip_appimage",
+        action="store_true",
+        help="[DEPRECATED] Skip AppImage generation",
+    )
+    parser.add_argument(
+        "--generate",
+        dest="generate",
+        action="store_true",
+        help="Try to generate recipe from an AppDir",
+    )
 
-    def parse(self):
-        return self.parser.parse_args()
+    subparsers = parser.add_subparsers(help="Command to be executed")
+    CommandGenerate.setup_parser(subparsers)
+
+    return parser
