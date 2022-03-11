@@ -167,6 +167,7 @@ class RuntimeGenerator:
             helpers.OpenSSL,
             helpers.Python,
             helpers.Qt,
+            helpers.Mime,
         ]
 
         for helper in execution_list:
